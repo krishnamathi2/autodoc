@@ -1,0 +1,12 @@
+
+
+{
+  "functions": {
+    "main.py": {
+      "runtime": "python3.9"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "dest": "/main.py" }
+  ]
+}
