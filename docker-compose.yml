@@ -1,0 +1,100 @@
+﻿# Autodoc API Documentation
+## Base URL: \https://api.autodoc.dev/v1\
+
+## Endpoints
+
+### POST /fix/create
+Create a security fix PR.
+
+**Request:**
+\\\json
+{
+  \"alert_id\": \"GHSA-1234-5678-9012\",
+  \"repository\": \"owner/repo\",
+  \"alert_source\": \"github\",
+  \"alert_data\": {
+    \"package_name\": \"lodash\",
+    \"vulnerable_version\": \"<4.17.21\",
+    \"patched_version\": \"4.17.21\",
+    \"severity\": \"high\",
+    \"cve_id\": \"CVE-2021-1234\"
+  },
+  \"auto_merge\": false,
+  \"add_tests\": true
+}
+\\\
+
+**Response:**
+\\\json
+{
+  \"success\": true,
+  \"pr_url\": \"https://github.com/owner/repo/pull/123\",
+  \"fix_time_ms\": 47820,
+  \"changes\": {
+    \"files_modified\": [\"package.json\", \"test/security/lodash.test.js\"],
+    \"dependencies_updated\": {\"lodash\": \"4.17.21\"}
+  }
+}
+\\\
+
+### GET /health
+Health check endpoint.
+
+**Response:**
+\\\json
+{
+  \"status\": \"healthy\",
+  \"version\": \"1.0.0\",
+  \"uptime\": \"5d 12h\",
+  \"metrics\": {
+    \"fixes_processed\": 1247,
+    \"avg_fix_time_ms\": 43210,
+    \"success_rate\": 99.2
+  }
+}
+\\\
+"@ | Out-File -FilePath "autodoc-mvp/docs/api.md" -Encoding UTF8
+
+# 4. Create docker-compose.yml
+@"
+version: '3.8'
+services:
+  api:
+    build: ./backend
+    ports:
+      - \"8000:8000\"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/autodoc
+      - GITHUB_APP_ID=\
+      - GITHUB_PRIVATE_KEY=\
+      - WEBHOOK_SECRET=\
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_DB=autodoc
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - \"6379:6379\"
+
+  worker:
+    build: ./backend
+    command: python -m worker
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/autodoc
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  postgres_data:
