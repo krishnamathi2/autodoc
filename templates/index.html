@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>autodoc • Automated Security Fixes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid #667eea;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #667eea; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="text-2xl font-bold text-purple-600">
+                        <i class="fas fa-shield-alt mr-2"></i>autodoc
+                    </div>
+                    <span class="ml-2 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded">BETA</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#features" class="text-gray-700 hover:text-purple-600">Features</a>
+                    <a href="#how-it-works" class="text-gray-700 hover:text-purple-600">How it Works</a>
+                    <a href="#api" class="text-gray-700 hover:text-purple-600">API</a>
+                    <a href="#pricing" class="text-gray-700 hover:text-purple-600">Pricing</a>
+                </div>
+                <div>
+                    <button class="bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-700 transition">
+                        Get Started Free
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-20">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-5xl font-bold mb-6">
+                Don't just <span class="text-yellow-300">find</span> vulnerabilities.
+                <br>
+                <span class="typewriter">Automatically fix them.</span>
+            </h1>
+            <p class="text-xl mb-10 text-purple-100 max-w-3xl mx-auto">
+                autodoc is the world's first automated security remediation platform. 
+                We don't just alert you about vulnerabilities—we fix them for you.
+            </p>
+            <div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-6">
+                <button class="bg-white text-purple-600 px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition">
+                    <i class="fas fa-play mr-2"></i> See Live Demo
+                </button>
+                <button class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-white hover:text-purple-600 transition">
+                    <i class="fab fa-github mr-2"></i> View on GitHub
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Comparison -->
+    <section id="features" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-16">Why autodoc beats traditional scanners</h2>
+            
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Traditional Scanners -->
+                <div class="bg-gray-50 p-8 rounded-xl border border-gray-200">
+                    <div class="flex items-center mb-6">
+                        <div class="text-red-500 text-2xl mr-3">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800">Traditional Scanners</h3>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+                            <span>Only detect vulnerabilities</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+                            <span>Manual fix creation</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+                            <span>No integration with CI/CD</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-times text-red-500 mt-1 mr-3"></i>
+                            <span>Generic recommendations</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- autodoc -->
+                <div class="bg-purple-50 p-8 rounded-xl border border-purple-200 card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="text-green-500 text-2xl mr-3">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800">autodoc</h3>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
+                            <span><strong>Detects AND fixes</strong> vulnerabilities automatically</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
+                            <span><strong>Creates PRs</strong> with working fixes</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
+                            <span><strong>Seamless CI/CD</strong> integration</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
+                            <span><strong>Context-aware</strong> remediation</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Demo Section -->
+    <section id="api" class="py-20 bg-gray-900 text-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-4">Try Our API Now</h2>
+            <p class="text-gray-400 text-center mb-12">See how easy it is to automate security fixes</p>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Code Example -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-2xl font-bold mb-4">Send a Security Alert</h3>
+                    <pre class="bg-black p-4 rounded-lg overflow-x-auto text-sm">
+<code class="text-green-400">curl -X POST https://autodocmvp.vercel.app/v1/fix/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "alert_id": "CVE-2024-12345",
+    "repository": "your-org/your-repo",
+    "alert_source": "Dependabot",
+    "alert_data": {
+      "vulnerability": "Prototype Pollution in lodash",
+      "severity": "high",
+      "affected_version": "<4.17.20",
+      "fixed_version": "4.17.21",
+      "dependency": "lodash"
+    }
+  }'</code></pre>
+                </div>
+
+                <!-- Live Test Form -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-2xl font-bold mb-4">Test Live</h3>
+                    <div id="api-test-form" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-400 mb-2">Vulnerability</label>
+                            <input type="text" class="w-full bg-gray-700 rounded-lg p-3" value="Prototype Pollution in lodash" id="vuln-input">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 mb-2">Severity</label>
+                            <select class="w-full bg-gray-700 rounded-lg p-3" id="severity-select">
+                                <option value="critical">Critical</option>
+                                <option value="high" selected>High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                        <button onclick="testAPI()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition">
+                            <i class="fas fa-bolt mr-2"></i> Test API
+                        </button>
+                        <div id="api-result" class="hidden mt-4 p-4 bg-gray-900 rounded-lg">
+                            <h4 class="font-bold mb-2">Response:</h4>
+                            <pre class="text-sm" id="response-output"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-16">How autodoc Works</h2>
+            
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-search text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">1. Detect</h3>
+                    <p class="text-gray-600">Integrates with Dependabot, Snyk, etc.</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-robot text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">2. Analyze</h3>
+                    <p class="text-gray-600">Assesses impact and creates fix strategy</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-code-branch text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">3. Fix</h3>
+                    <p class="text-gray-600">Creates PR with updated dependencies</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check-double text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-2">4. Deploy</h3>
+                    <p class="text-gray-600">Runs tests and automates deployment</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20 gradient-bg text-white">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold mb-6">Ready to automate your security fixes?</h2>
+            <p class="text-xl mb-10 max-w-2xl mx-auto">
+                Join developers who save hours every week by automating vulnerability remediation.
+            </p>
+            <div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-6">
+                <button class="bg-white text-purple-600 px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition">
+                    Start Free Trial
+                </button>
+                <button class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-white hover:text-purple-600 transition">
+                    Schedule a Demo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="text-2xl font-bold text-purple-400">
+                        <i class="fas fa-shield-alt mr-2"></i>autodoc
+                    </div>
+                    <p class="text-gray-400 mt-2">Automated security remediation for modern teams</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-github text-2xl"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter text-2xl"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-discord text-2xl"></i></a>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>© 2024 autodoc. All rights reserved. | <a href="#" class="hover:text-white">Privacy Policy</a> | <a href="#" class="hover:text-white">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function testAPI() {
+            const form = document.getElementById('api-test-form');
+            const resultDiv = document.getElementById('api-result');
+            const output = document.getElementById('response-output');
+            
+            const payload = {
+                alert_id: 'TEST-' + Date.now(),
+                repository: 'test-org/test-repo',
+                alert_source: 'Dependabot',
+                alert_data: {
+                    vulnerability: document.getElementById('vuln-input').value,
+                    severity: document.getElementById('severity-select').value,
+                    dependency: 'lodash',
+                    affected_version: '<4.17.20',
+                    fixed_version: '4.17.21'
+                },
+                auto_merge: false,
+                add_tests: true
+            };
+
+            output.textContent = 'Sending request...';
+            resultDiv.classList.remove('hidden');
+
+            fetch('https://autodoc-265x2hdzz-krishnamathi2s-projects.vercel.app/v1/fix/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                output.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                output.textContent = 'Error: ' + error.message;
+            });
+        }
+
+        // Typewriter effect
+        document.addEventListener('DOMContentLoaded', function() {
+            const typewriter = document.querySelector('.typewriter');
+            setTimeout(() => {
+                typewriter.style.animation = 'none';
+                typewriter.style.borderRight = 'none';
+            }, 3500);
+        });
+    </script>
+</body>
+</html>

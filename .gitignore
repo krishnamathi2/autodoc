@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 node_modules 
 .env.local 
 .env.development.local 
@@ -12,3 +13,40 @@ build
 coverage 
 .DS_Store 
 .env 
+=======
+# Create .gitignore with these contents
+@'
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+.env
+.env.local
+
+# Secrets
+*.pem
+*.key
+secrets/
+credentials/
+ngrok.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.log
+'@ | Out-File -FilePath .gitignore -Encoding utf8
+>>>>>>> cdecdd6b56c1579f379914d9dd9283566dbe682c
