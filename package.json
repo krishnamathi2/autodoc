@@ -3,10 +3,10 @@
   "version": "2.0.0",
   "private": true,
   "dependencies": {
-    "@stripe/stripe-js": "^8.6.3",
     "axios": "^1.6.0",
     "classnames": "^2.5.1",
     "express-session": "^1.19.0",
+    "firebase": "^12.8.0",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
     "mongoose": "^9.1.5",
@@ -16,7 +16,6 @@
     "react-icons": "^5.2.1",
     "react-router-dom": "^7.12.0",
     "react-scripts": "^5.0.0",
-    "stripe": "^14.0.0",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },

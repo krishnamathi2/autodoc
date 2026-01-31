@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { validateEmail, validatePassword, getPasswordStrength } from '../utils/validation';
+import { signInWithGoogle, signInWithGitHub, signInWithMicrosoft } from '../services/firebase';
 
 function SignInPage() {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
@@ -134,7 +135,7 @@ function SignInPage() {
     
     setTimeout(() => {
       setLoading(false);
-      navigate('/dashboard');
+      navigate('/interactive-demo-aftertrailsignin');
     }, 1500);
   };
 
@@ -179,8 +180,50 @@ function SignInPage() {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    alert(`Redirecting to ${provider} authentication...`);
+  const handleSocialLogin = async (provider: string) => {
+    setLoading(true);
+    setLoginErrors(prev => ({ ...prev, general: '' }));
+    
+    try {
+      let result: { success: boolean; user?: any; error?: string };
+      
+      switch (provider) {
+        case 'Google':
+          result = await signInWithGoogle();
+          break;
+        case 'GitHub':
+          result = await signInWithGitHub();
+          break;
+        case 'Microsoft':
+          result = await signInWithMicrosoft();
+          break;
+        default:
+          throw new Error('Unknown provider');
+      }
+      
+      if (result.success) {
+        // Store user info if needed
+        localStorage.setItem('user', JSON.stringify({
+          email: result.user?.email,
+          name: result.user?.displayName,
+          photoURL: result.user?.photoURL,
+          provider: provider
+        }));
+        navigate('/interactive-demo-aftertrailsignin');
+      } else {
+        setLoginErrors(prev => ({ 
+          ...prev, 
+          general: result.error || `Failed to sign in with ${provider}` 
+        }));
+      }
+    } catch (error: any) {
+      setLoginErrors(prev => ({ 
+        ...prev, 
+        general: error.message || `Failed to sign in with ${provider}` 
+      }));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const passwordStrength = getPasswordStrength(signupData.password);
@@ -450,7 +493,7 @@ function SignInPage() {
                     <div className="feature-icon">🚀</div>
                     <div className="feature-content">
                       <h3>Access Your Dashboard</h3>
-                      <p>Get 14 days of unlimited security scanning and automated fixes</p>
+                      <p>Get 14 mins of unlimited security scanning and automated fixes</p>
                     </div>
                   </div>
                   

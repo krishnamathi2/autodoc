@@ -1,21 +1,26 @@
-<<<<<<< HEAD
-node_modules 
-.env.local 
-.env.development.local 
-.env.test.local 
-.env.production.local 
-npm-debug.log* 
-yarn-debug.log* 
-yarn-error.log* 
-.pnp 
-.pnp.js 
-build 
-coverage 
-.DS_Store 
-.env 
-=======
-# Create .gitignore with these contents
-@'
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build output
+build/
+coverage/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Yarn
+.pnp
+.pnp.js
+
 # Python
 __pycache__/
 *.pyc
@@ -25,8 +30,6 @@ __pycache__/
 venv/
 env/
 .venv/
-.env
-.env.local
 
 # Secrets
 *.pem
@@ -48,5 +51,3 @@ Thumbs.db
 # Temp files
 *.tmp
 *.log
-'@ | Out-File -FilePath .gitignore -Encoding utf8
->>>>>>> cdecdd6b56c1579f379914d9dd9283566dbe682c

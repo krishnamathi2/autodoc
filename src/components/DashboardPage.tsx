@@ -67,6 +67,7 @@ function DashboardPage() {
     daysRemaining: 14,
     isActive: true,
   });
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   
   const navigate = useNavigate();
 
@@ -77,8 +78,9 @@ function DashboardPage() {
       try {
         const trialData = JSON.parse(savedTrial);
         const trialStart = new Date(trialData.started);
-        const daysSinceStart = Math.floor((new Date().getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
-        const daysRemaining = Math.max(0, 14 - daysSinceStart);
+        // Using minutes for testing (change to days calculation for production)
+        const minutesSinceStart = Math.floor((new Date().getTime() - trialStart.getTime()) / (1000 * 60));
+        const daysRemaining = Math.max(0, 14 - minutesSinceStart);
         
         setTrialStatus({
           started: trialStart,
@@ -86,10 +88,9 @@ function DashboardPage() {
           isActive: daysRemaining > 0,
         });
 
-        // If trial has expired, redirect to free trial page for upgrade
+        // If trial has expired, show subscription modal
         if (daysRemaining <= 0) {
-          navigate('/free-trial');
-          return;
+          setShowSubscribeModal(true);
         }
       } catch (error) {
         console.error('Error parsing trial data:', error);
@@ -558,7 +559,7 @@ function DashboardPage() {
   };
 
   const handleNewScan = () => {
-    alert('Starting new security scan...');
+    navigate('/workspace');
   };
 
   const handleViewAll = () => {
@@ -570,6 +571,156 @@ function DashboardPage() {
 
   return (
     <div style={styles.container}>
+      {/* Trial Expired - Subscribe Modal */}
+      {showSubscribeModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: isDarkTheme ? '#1e293b' : '#ffffff',
+            borderRadius: '16px',
+            padding: '40px',
+            maxWidth: '500px',
+            width: '90%',
+            textAlign: 'center',
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              background: 'linear-gradient(135deg, #f59e0b, #f97316)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px',
+              fontSize: '40px',
+            }}>
+              ⏰
+            </div>
+            <h2 style={{
+              fontSize: '1.8rem',
+              fontWeight: 700,
+              marginBottom: '16px',
+              color: isDarkTheme ? '#f1f5f9' : '#1e293b',
+            }}>
+              Your Free Trial Has Ended
+            </h2>
+            <p style={{
+              fontSize: '1.1rem',
+              color: isDarkTheme ? '#94a3b8' : '#64748b',
+              marginBottom: '24px',
+              lineHeight: 1.6,
+            }}>
+              Your 14-minute trial period has expired. Subscribe now to continue using AutoDoc's powerful security scanning features.
+            </p>
+            <div style={{
+              background: isDarkTheme ? '#0f172a' : '#f1f5f9',
+              borderRadius: '12px',
+              padding: '20px',
+              marginBottom: '24px',
+            }}>
+              <h3 style={{
+                fontSize: '1.2rem',
+                fontWeight: 600,
+                marginBottom: '12px',
+                color: isDarkTheme ? '#f1f5f9' : '#1e293b',
+              }}>
+                Pro Plan Benefits:
+              </h3>
+              <ul style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                textAlign: 'left',
+              }}>
+                {['Unlimited code scans', 'AI-powered auto-fixes', 'Priority support', 'Advanced vulnerability detection', 'Team collaboration'].map((benefit, i) => (
+                  <li key={i} style={{
+                    padding: '8px 0',
+                    color: isDarkTheme ? '#94a3b8' : '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}>
+                    <span style={{ color: '#22c55e' }}>✓</span> {benefit}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('autodoc_trial');
+                  navigate('/');
+                }}
+                style={{
+                  padding: '14px 28px',
+                  background: 'transparent',
+                  color: isDarkTheme ? '#94a3b8' : '#64748b',
+                  border: `1px solid ${isDarkTheme ? '#334155' : '#e2e8f0'}`,
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                Maybe Later
+              </button>
+              <button
+                onClick={() => {
+                  // Open Razorpay payment page
+                  window.open('https://razorpay.me/@mathivananponnusamy', '_blank');
+                  // Show confirmation after payment
+                  setTimeout(() => {
+                    const confirmed = window.confirm(
+                      'After completing payment on Razorpay, click OK to activate your Pro plan.'
+                    );
+                    if (confirmed) {
+                      localStorage.setItem('autodoc_trial', JSON.stringify({
+                        started: new Date().toISOString(),
+                        plan: 'Pro',
+                        subscribed: true
+                      }));
+                      setShowSubscribeModal(false);
+                      window.location.reload();
+                    }
+                  }, 1000);
+                }}
+                style={{
+                  padding: '14px 28px',
+                  background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                }}
+              >
+                Subscribe Now - ₹4,067/year
+              </button>
+            </div>
+            <p style={{
+              fontSize: '0.85rem',
+              color: isDarkTheme ? '#64748b' : '#94a3b8',
+              marginTop: '16px',
+            }}>
+              Secure payment powered by Razorpay
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Top Navigation Bar */}
       <div style={styles.topBar}>
         <div style={styles.leftControls}>

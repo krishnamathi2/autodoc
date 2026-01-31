@@ -1,9 +1,6 @@
 {
-  "env": {
-    "node": true,
-    "es2021": true
-  },
-  "extends": ["eslint:recommended"],
+  "root": true,
+  "extends": ["react-app", "react-app/jest"],
   "rules": {
     "no-console": "off",
     "no-unused-vars": "warn"

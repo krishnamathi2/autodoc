@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
 import { useNavigate } from 'react-router-dom';
-
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY!);
 
 interface Plan {
   _id: string;
@@ -15,13 +12,11 @@ interface Plan {
   autoFixLimit: number;
   teamMembers: number;
   prioritySupport: boolean;
-  stripePriceId: string;
 }
 
 function PricingPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPlan, setSelectedPlan] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,33 +35,19 @@ function PricingPage() {
     }
   };
 
-  const handleSubscribe = async (planId: string, stripePriceId: string) => {
-    try {
-      // Get current user ID (you'll need to implement authentication)
-      const userId = localStorage.getItem('userId') || 'guest';
-      
-      const response = await fetch('/api/pricing/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId: stripePriceId, userId })
-      });
-
-      const { sessionId, url } = await response.json();
-      
-      if (url) {
-        window.location.href = url;
-      } else {
-        // Use Stripe.js for embedded checkout
-        const stripe = await stripePromise;
-        const result = await stripe!.redirectToCheckout({ sessionId });
-        
-        if (result.error) {
-          console.error(result.error.message);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to create checkout session:', error);
+  const handlePlanSelection = (plan: Plan) => {
+    if (plan.price === 0) {
+      navigate('/workspace');
+      return;
     }
+
+    const subject = encodeURIComponent(`AutoDoc ${plan.name} Plan Inquiry`);
+    const body = encodeURIComponent(
+      `Hi AutoDoc team,\n\nI'm interested in the ${plan.name} plan. ` +
+      `Please share the next steps to get started.\n\nThanks!`
+    );
+
+    window.location.href = `mailto:sales@autodoc.com?subject=${subject}&body=${body}`;
   };
 
   const styles = {
@@ -300,9 +281,9 @@ function PricingPage() {
                 ...styles.button,
                 ...(plan.name === 'Pro' ? styles.primaryButton : styles.secondaryButton)
               }}
-              onClick={() => handleSubscribe(plan._id, plan.stripePriceId)}
+              onClick={() => handlePlanSelection(plan)}
             >
-              {plan.price === 0 ? 'Get Started Free' : `Get ${plan.name}`}
+              {plan.price === 0 ? 'Get Started Free' : 'Contact Sales'}
             </button>
           </div>
         ))}

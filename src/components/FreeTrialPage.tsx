@@ -146,13 +146,14 @@ function FreeTrialPage() {
       setLoading(false);
       setSubmitted(true);
       
-      // Store trial data in localStorage
-      localStorage.setItem('trialUser', JSON.stringify({
+      // Store trial data in localStorage (key must match DashboardPage check)
+      // Using 14 minutes for testing (change to 14 * 24 * 60 * 60 * 1000 for 14 days in production)
+      localStorage.setItem('autodoc_trial', JSON.stringify({
         email: formData.email,
         name: formData.name,
         company: formData.company,
-        trialStart: new Date().toISOString(),
-        trialEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        started: new Date().toISOString(),
+        trialEnd: new Date(Date.now() + 14 * 60 * 1000).toISOString()
       }));
       
       console.log('Data saved to localStorage');
@@ -192,7 +193,7 @@ function FreeTrialPage() {
       <main className="tutor-container">
         <header className="tutor-header">
           <h1 className="tutor-title">🚀 Start Your AutoDoc Free Trial</h1>
-          <p className="tutor-subtitle">14-day free trial • No credit card required • Full platform access</p>
+          <p className="tutor-subtitle">14-min free trial • No credit card required • Full platform access</p>
         </header>
         
         <section className="trial-section">
@@ -271,7 +272,7 @@ function FreeTrialPage() {
                 <div className="success-message">
                   <div className="success-icon">🎉</div>
                   <h2>Thank You for Signing Up!</h2>
-                  <p>Your 14-day free trial has been activated for <strong>{formData.email}</strong>.</p>
+                  <p>Your 14-min free trial has been activated for <strong>{formData.email}</strong>.</p>
                   <p>Your dashboard is now ready. Start securing your code!</p>
                   
                   <div className="next-steps">
@@ -353,7 +354,7 @@ function FreeTrialPage() {
               ) : (
                 <>
                   <div className="form-header">
-                    <h2>Start Your 14-Day Free Trial</h2>
+                    <h2>Start Your 14-Min Free Trial</h2>
                     <p>No credit card required. Get full access immediately.</p>
                   </div>
                   
@@ -573,7 +574,7 @@ function FreeTrialPage() {
           <div className="faq-grid">
             <div className="faq-item">
               <h3>What happens after the trial ends?</h3>
-              <p>After 14 days, you can choose a plan that fits your needs. If you don't upgrade, you'll lose access to premium features but can continue with the free tier.</p>
+              <p>After 14 mins, you can choose a plan that fits your needs. If you don't upgrade, you'll lose access to premium features but can continue with the free tier.</p>
             </div>
             
             <div className="faq-item">
@@ -594,7 +595,7 @@ function FreeTrialPage() {
         </div>
         
         <footer className="tutor-footer">
-          <p>AutoDoc Free Trial • 14 days of unlimited security scanning • No credit card required</p>
+          <p>AutoDoc Free Trial • 14 mins of unlimited security scanning • No credit card required</p>
         </footer>
       </main>
     </div>

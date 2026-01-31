@@ -9,8 +9,8 @@ export interface SubscriptionPlan {
   autoFixLimit: number;
   teamMembers: number;
   prioritySupport: boolean;
-  stripePriceId: string;
   isActive: boolean;
+  externalPlanId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,8 +19,8 @@ export interface UserSubscription {
   _id: string;
   userId: string;
   planId: string;
-  stripeSubscriptionId: string;
-  stripeCustomerId: string;
+  externalSubscriptionId?: string;
+  billingProvider?: string;
   status: 'active' | 'canceled' | 'past_due' | 'unpaid';
   currentPeriodStart: Date;
   currentPeriodEnd: Date;

@@ -7,10 +7,13 @@ import HomePage from './components/HomePage';
 import ImpulseTutorPage from './components/ImpulseTutorPage'; 
 import WhyAutoDocPage from './components/WhyAutoDocPage'; 
 import InteractiveDemoPage from './components/InteractiveDemoPage'; 
+import InteractiveDemoAfterTrialSignIn from './components/InteractiveDemoAfterTrialSignIn';
 import AutoDocWorkspace from './components/AutoDocWorkspace';  // New workspace component
 import FreeTrialPage from './components/FreeTrialPage'; 
 import SignInPage from './components/SignInPage'; 
 import DashboardPage from './components/DashboardPage'; 
+import PaymentsPage from './components/PaymentsPage';
+import ComparePage from './components/ComparePage';
  
 function App() { 
   return ( 
@@ -23,6 +26,8 @@ function App() {
         <Route path="/impulse-tutor" element={<ImpulseTutorPage />} /> 
         <Route path="/why-autodoc" element={<WhyAutoDocPage />} /> 
         <Route path="/interactive-demo" element={<InteractiveDemoPage />} /> 
+        <Route path="/interactive-demo-aftertrailsignin" element={<InteractiveDemoAfterTrialSignIn />} />
+        <Route path="/compare" element={<ComparePage />} />
         
         {/* New: Actual Working Tool */}
         <Route path="/workspace" element={<AutoDocWorkspace />} />
@@ -31,6 +36,7 @@ function App() {
         <Route path="/free-trial" element={<FreeTrialPage />} /> 
         <Route path="/signin" element={<SignInPage />} /> 
         <Route path="/dashboard" element={<DashboardPage />} /> 
+        <Route path="/payments" element={<PaymentsPage />} />
         
         {/* Optional: 404 Page */}
         <Route path="*" element={
