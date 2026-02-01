@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { validateEmail, validatePassword, getPasswordStrength } from '../utils/validation';
-import { signInWithGoogle, signInWithGitHub, signInWithMicrosoft } from '../services/firebase';
+import { signInWithGoogle, signInWithGitHub, signInWithMicrosoft, createAccountWithEmail, signInWithEmail, resetPassword } from '../services/firebase';
 
 function SignInPage() {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
@@ -123,7 +123,7 @@ function SignInPage() {
     return !Object.values(errors).some(error => error !== '');
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateLoginForm()) {
@@ -133,13 +133,32 @@ function SignInPage() {
     setLoading(true);
     setLoginErrors(prev => ({ ...prev, general: '' }));
     
-    setTimeout(() => {
+    try {
+      const result = await signInWithEmail(loginData.email, loginData.password);
+      
       setLoading(false);
-      navigate('/interactive-demo-aftertrailsignin');
-    }, 1500);
+      
+      if (result.success) {
+        // Check if email is verified (optional - remove if you want to allow unverified users)
+        if (result.user && !result.user.emailVerified) {
+          setLoginErrors(prev => ({ 
+            ...prev, 
+            general: 'Please verify your email before signing in. Check your inbox (or spam folder).' 
+          }));
+          return;
+        }
+        navigate('/interactive-demo-aftertrailsignin');
+      } else {
+        setLoginErrors(prev => ({ ...prev, general: result.error || 'Sign in failed. Please try again.' }));
+      }
+    } catch (error: any) {
+      setLoading(false);
+      console.error('Login error:', error);
+      setLoginErrors(prev => ({ ...prev, general: 'An unexpected error occurred. Please try again.' }));
+    }
   };
 
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateSignupForm()) {
@@ -148,8 +167,15 @@ function SignInPage() {
     
     setLoading(true);
     
-    setTimeout(() => {
-      setLoading(false);
+    const result = await createAccountWithEmail(
+      signupData.email, 
+      signupData.password, 
+      signupData.name
+    );
+    
+    setLoading(false);
+    
+    if (result.success) {
       alert('Account created successfully! Please check your email to verify your account.');
       setIsLogin(true);
       setSignupData({
@@ -166,17 +192,26 @@ function SignInPage() {
         confirmPassword: '',
         acceptTerms: ''
       });
-    }, 1500);
+    } else {
+      // Show error to user
+      setSignupErrors(prev => ({ ...prev, email: result.error || 'Account creation failed. Please try again.' }));
+    }
   };
 
-  const handleForgotPassword = () => {
+  const handleForgotPassword = async () => {
     const email = prompt('Please enter your email address to reset your password:');
     if (email) {
       if (!validateEmail(email).isValid) {
         alert('Please enter a valid email address');
         return;
       }
-      alert(`Password reset instructions have been sent to ${email}`);
+      
+      const result = await resetPassword(email);
+      if (result.success) {
+        alert(`Password reset instructions have been sent to ${email}`);
+      } else {
+        alert(result.error || 'Failed to send reset email. Please try again.');
+      }
     }
   };
 

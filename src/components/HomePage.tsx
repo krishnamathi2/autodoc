@@ -653,16 +653,16 @@ const HomePage = () => {
               How It Works
             </Link>
             <Link 
-              to="/workspace" 
+              to="/signin" 
               style={headerStyles.navLink}
             >
               Try AutoDoc
             </Link>
             <Link 
-              to="/impulse-tutor" 
+              to="/why-autodoc" 
               style={headerStyles.navLink}
             >
-              Resources
+              Why AutoDoc?
             </Link>
             <a 
               href="#" 
@@ -707,7 +707,7 @@ const HomePage = () => {
                 Start Free Trial
               </Link>
               <Link 
-                to="/workspace" 
+                to="/signin" 
                 style={combineStyles(styles.btn, styles.btnSecondary)}
               >
                 Try AutoDoc Free
@@ -754,18 +754,6 @@ app.get('/user/:id', (req, res) => {
                 </pre>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Trust Bar */}
-        <section style={styles.trustBar}>
-          <p style={styles.trustTitle}>Trusted by security teams at:</p>
-          <div style={styles.companyLogos}>
-            <div style={styles.logo}>COMPANY A</div>
-            <div style={styles.logo}>COMPANY B</div>
-            <div style={styles.logo}>COMPANY C</div>
-            <div style={styles.logo}>COMPANY D</div>
-            <div style={styles.logo}>COMPANY E</div>
           </div>
         </section>
 
@@ -888,7 +876,7 @@ app.get('/user/:id', (req, res) => {
               No signup required. Upload your code and see AutoDoc fix security vulnerabilities in real-time.
             </p>
             <Link 
-              to="/workspace" 
+              to="/interactive-demo" 
               style={combineStyles(styles.btn, styles.btnPrimary, styles.btnLarge)}
             >
               🚀 Launch AutoDoc Workspace
@@ -914,7 +902,7 @@ app.get('/user/:id', (req, res) => {
                 Start Your Free Trial
               </Link>
               <Link 
-                to="/workspace" 
+                to="/signin" 
                 style={combineStyles(styles.btn, styles.btnSecondary, styles.btnLarge)}
               >
                 Try AutoDoc Free
@@ -932,11 +920,11 @@ app.get('/user/:id', (req, res) => {
             <Link to="/interactive-demo" style={styles.footerLink}>
               How It Works
             </Link>
-            <Link to="/workspace" style={styles.footerLink}>
+            <Link to="/signin" style={styles.footerLink}>
               Try AutoDoc
             </Link>
-            <Link to="/impulse-tutor" style={styles.footerLink}>
-              Resources
+            <Link to="/why-autodoc" style={styles.footerLink}>
+              Why AutoDoc?
             </Link>
             <a href="#" style={styles.footerLink} onClick={handlePricingClick}>
               Pricing

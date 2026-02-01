@@ -15,6 +15,11 @@ import {
   signInWithPopup,
   signOut,
   onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  updateProfile,
   User
 } from 'firebase/auth';
 
@@ -88,6 +93,88 @@ export const logOut = async () => {
 // Auth state observer
 export const onAuthChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
+};
+
+// Email/Password Authentication
+export const createAccountWithEmail = async (email: string, password: string, displayName: string) => {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    
+    // Update the user's display name
+    if (result.user) {
+      await updateProfile(result.user, { displayName });
+      
+      // Send verification email
+      await sendEmailVerification(result.user);
+    }
+    
+    return { success: true, user: result.user };
+  } catch (error: any) {
+    console.error('Email signup error:', error);
+    let errorMessage = error.message;
+    
+    // Provide user-friendly error messages
+    if (error.code === 'auth/email-already-in-use') {
+      errorMessage = 'An account with this email already exists. Please sign in instead.';
+    } else if (error.code === 'auth/weak-password') {
+      errorMessage = 'Password is too weak. Please use at least 6 characters.';
+    } else if (error.code === 'auth/invalid-email') {
+      errorMessage = 'Please enter a valid email address.';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return { success: true, user: result.user };
+  } catch (error: any) {
+    console.error('Email sign-in error:', error);
+    let errorMessage = error.message;
+    
+    // Provide user-friendly error messages
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      errorMessage = 'Invalid email or password. Please try again.';
+    } else if (error.code === 'auth/too-many-requests') {
+      errorMessage = 'Too many failed attempts. Please try again later.';
+    } else if (error.code === 'auth/user-disabled') {
+      errorMessage = 'This account has been disabled. Please contact support.';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const resetPassword = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { success: true };
+  } catch (error: any) {
+    console.error('Password reset error:', error);
+    let errorMessage = error.message;
+    
+    if (error.code === 'auth/user-not-found') {
+      errorMessage = 'No account found with this email address.';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const resendVerificationEmail = async () => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      await sendEmailVerification(user);
+      return { success: true };
+    }
+    return { success: false, error: 'No user is signed in.' };
+  } catch (error: any) {
+    console.error('Resend verification error:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 export { auth };

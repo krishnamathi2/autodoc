@@ -1,0 +1,560 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+
+// Declare Razorpay on window
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+interface Plan {
+  id: string;
+  name: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  features: string[];
+  popular?: boolean;
+  teamSize: string;
+}
+
+const PaymentsPage = () => {
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
+  const [selectedPlan, setSelectedPlan] = useState<string>('pro');
+  const [loading, setLoading] = useState(false);
+  const [currency, setCurrency] = useState<'USD' | 'INR'>('INR');
+
+  const exchangeRate = 83; // Approximate USD to INR
+
+  const plans: Plan[] = [
+    {
+      id: 'starter',
+      name: 'Starter',
+      monthlyPrice: 9,
+      yearlyPrice: 89,
+      teamSize: '1 user',
+      features: [
+        '50 code scans/month',
+        'Basic vulnerability detection',
+        'Email support',
+        'Single project',
+      ],
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      monthlyPrice: 25,
+      yearlyPrice: 250,
+      teamSize: 'Up to 5 users',
+      popular: true,
+      features: [
+        'Unlimited code scans',
+        'Auto-fix all vulnerabilities',
+        'Side-by-side code comparison',
+        'Export security reports',
+        'Priority support',
+        'Team collaboration',
+        'API access',
+      ],
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      monthlyPrice: 99,
+      yearlyPrice: 990,
+      teamSize: 'Unlimited users',
+      features: [
+        'Everything in Pro',
+        'Custom integrations',
+        'SSO / SAML',
+        'Dedicated account manager',
+        'SLA guarantee',
+        'On-premise deployment option',
+        'Custom training',
+        'Audit logs',
+      ],
+    },
+  ];
+
+  // Load Razorpay script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  const getPrice = (plan: Plan) => {
+    const basePrice = billingCycle === 'yearly' ? plan.yearlyPrice : plan.monthlyPrice;
+    if (currency === 'INR') {
+      return Math.round(basePrice * exchangeRate);
+    }
+    return basePrice;
+  };
+
+  const formatPrice = (amount: number) => {
+    if (currency === 'INR') {
+      return `₹${amount.toLocaleString('en-IN')}`;
+    }
+    return `$${amount}`;
+  };
+
+  const handleRazorpayPayment = async () => {
+    const plan = plans.find(p => p.id === selectedPlan);
+    if (!plan) return;
+
+    const amount = getPrice(plan);
+    const amountInPaise = currency === 'INR' ? amount * 100 : amount * exchangeRate * 100;
+
+    setLoading(true);
+
+    // Razorpay payment options
+    const options = {
+      key: 'rzp_test_YourTestKeyHere', // Replace with your Razorpay key
+      amount: amountInPaise,
+      currency: 'INR',
+      name: 'AutoDoc',
+      description: `${plan.name} Plan - ${billingCycle === 'yearly' ? 'Annual' : 'Monthly'} Subscription`,
+      image: 'https://autodoc-wn1u.vercel.app/logo192.png',
+      handler: function (response: any) {
+        alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}\n\nYour ${plan.name} plan is now active!`);
+        setLoading(false);
+        // In production: verify payment on backend and activate subscription
+      },
+      prefill: {
+        name: '',
+        email: '',
+        contact: '',
+      },
+      notes: {
+        plan: plan.name,
+        billing_cycle: billingCycle,
+      },
+      theme: {
+        color: '#2563eb',
+      },
+      modal: {
+        ondismiss: function () {
+          setLoading(false);
+        },
+      },
+    };
+
+    try {
+      if (!window.Razorpay) {
+        alert('Payment gateway is loading. Please try again in a moment.');
+        setLoading(false);
+        return;
+      }
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('Razorpay error:', error);
+      alert('Payment gateway not available. Please try again later.');
+      setLoading(false);
+    }
+  };
+
+  const handleContactSales = () => {
+    const plan = plans.find(p => p.id === selectedPlan);
+    const subject = encodeURIComponent(`AutoDoc ${plan?.name} Plan Inquiry`);
+    const body = encodeURIComponent(
+      `Hi AutoDoc team,\n\nI'm interested in the ${plan?.name} Plan (${billingCycle}).\n\nCompany Name:\nTeam Size:\nUse Case:\n\nPlease contact me to discuss further.\n\nThank you!`
+    );
+    window.location.href = `mailto:sales@autodoc.com?subject=${subject}&body=${body}`;
+  };
+
+  const styles = {
+    wrapper: {
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column' as const,
+      alignItems: 'center',
+      padding: '40px 16px',
+      background: 'linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%)',
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      color: '#0f172a'
+    },
+    header: {
+      textAlign: 'center' as const,
+      marginBottom: '32px',
+      maxWidth: '600px',
+    },
+    badge: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '6px 14px',
+      borderRadius: '999px',
+      background: '#dbeafe',
+      color: '#1e3a8a',
+      fontSize: '0.85rem',
+      fontWeight: 600,
+      marginBottom: '16px'
+    },
+    heading: {
+      fontSize: '2.5rem',
+      fontWeight: 700,
+      marginBottom: '12px'
+    },
+    subheading: {
+      color: '#475569',
+      fontSize: '1.1rem',
+      lineHeight: 1.6
+    },
+    controls: {
+      display: 'flex',
+      gap: '16px',
+      marginBottom: '32px',
+      flexWrap: 'wrap' as const,
+      justifyContent: 'center',
+    },
+    billingToggle: {
+      display: 'flex',
+      background: '#e2e8f0',
+      borderRadius: '8px',
+      padding: '4px',
+    },
+    toggleBtn: {
+      padding: '10px 20px',
+      border: 'none',
+      borderRadius: '6px',
+      cursor: 'pointer',
+      fontWeight: 600,
+      fontSize: '0.9rem',
+      transition: 'all 0.2s ease',
+    },
+    plansContainer: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+      gap: '24px',
+      maxWidth: '1000px',
+      width: '100%',
+      marginBottom: '32px',
+    },
+    planCard: {
+      background: 'white',
+      borderRadius: '16px',
+      padding: '28px',
+      boxShadow: '0 4px 20px rgba(15, 23, 42, 0.08)',
+      border: '2px solid transparent',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      position: 'relative' as const,
+    },
+    planCardSelected: {
+      border: '2px solid #2563eb',
+      boxShadow: '0 8px 30px rgba(37, 99, 235, 0.2)',
+    },
+    planCardPopular: {
+      border: '2px solid #10b981',
+    },
+    popularBadge: {
+      position: 'absolute' as const,
+      top: '-12px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: 'linear-gradient(135deg, #10b981, #059669)',
+      color: 'white',
+      padding: '6px 16px',
+      borderRadius: '20px',
+      fontSize: '0.8rem',
+      fontWeight: 600,
+    },
+    planName: {
+      fontSize: '1.4rem',
+      fontWeight: 700,
+      marginBottom: '4px',
+      color: '#0f172a',
+    },
+    teamSize: {
+      fontSize: '0.9rem',
+      color: '#64748b',
+      marginBottom: '16px',
+    },
+    priceContainer: {
+      display: 'flex',
+      alignItems: 'baseline',
+      gap: '4px',
+      marginBottom: '8px',
+    },
+    price: {
+      fontSize: '2.2rem',
+      fontWeight: 800,
+      color: '#0f172a',
+    },
+    pricePeriod: {
+      fontSize: '1rem',
+      color: '#64748b',
+    },
+    savings: {
+      display: 'inline-block',
+      background: '#dcfce7',
+      color: '#166534',
+      padding: '4px 10px',
+      borderRadius: '12px',
+      fontSize: '0.8rem',
+      fontWeight: 600,
+      marginBottom: '16px',
+    },
+    featureList: {
+      listStyle: 'none' as const,
+      padding: 0,
+      margin: '16px 0 0 0',
+    },
+    featureItem: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '10px',
+      fontSize: '0.9rem',
+      color: '#374151',
+      marginBottom: '10px',
+      lineHeight: 1.4,
+    },
+    checkIcon: {
+      color: '#10b981',
+      fontWeight: 'bold' as const,
+      marginTop: '2px',
+    },
+    ctaSection: {
+      background: 'white',
+      borderRadius: '16px',
+      padding: '32px',
+      maxWidth: '500px',
+      width: '100%',
+      boxShadow: '0 4px 20px rgba(15, 23, 42, 0.08)',
+      textAlign: 'center' as const,
+    },
+    selectedPlanInfo: {
+      marginBottom: '24px',
+    },
+    primaryBtn: {
+      width: '100%',
+      padding: '16px',
+      borderRadius: '10px',
+      background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+      color: 'white',
+      border: 'none',
+      fontWeight: 600,
+      fontSize: '1.1rem',
+      cursor: 'pointer',
+      marginBottom: '12px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+    },
+    secondaryBtn: {
+      width: '100%',
+      padding: '14px',
+      borderRadius: '10px',
+      border: '1px solid #e2e8f0',
+      background: 'white',
+      color: '#475569',
+      fontWeight: 600,
+      fontSize: '1rem',
+      cursor: 'pointer',
+      marginBottom: '12px',
+    },
+    paymentMethods: {
+      display: 'flex',
+      justifyContent: 'center',
+      gap: '12px',
+      marginTop: '20px',
+      flexWrap: 'wrap' as const,
+    },
+    paymentIcon: {
+      padding: '8px 14px',
+      background: '#f8fafc',
+      borderRadius: '8px',
+      fontSize: '0.85rem',
+      color: '#64748b',
+    },
+    securityNote: {
+      marginTop: '16px',
+      fontSize: '0.85rem',
+      color: '#64748b',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '6px',
+    },
+    backLink: {
+      display: 'inline-block',
+      marginTop: '24px',
+      color: '#2563eb',
+      textDecoration: 'none',
+      fontWeight: 500,
+    },
+  };
+
+  const selectedPlanData = plans.find(p => p.id === selectedPlan);
+
+  return (
+    <div style={styles.wrapper}>
+      {/* Header */}
+      <div style={styles.header}>
+        <div style={styles.badge}>
+          <span role="img" aria-label="rocket">🚀</span>
+          Choose Your Plan
+        </div>
+        <h1 style={styles.heading}>Simple, Transparent Pricing</h1>
+        <p style={styles.subheading}>
+          Start securing your code today. All plans include a 14-day free trial.
+        </p>
+      </div>
+
+      {/* Controls */}
+      <div style={styles.controls}>
+        {/* Billing Toggle */}
+        <div style={styles.billingToggle}>
+          <button
+            style={{
+              ...styles.toggleBtn,
+              background: billingCycle === 'monthly' ? 'white' : 'transparent',
+              color: billingCycle === 'monthly' ? '#0f172a' : '#64748b',
+              boxShadow: billingCycle === 'monthly' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+            }}
+            onClick={() => setBillingCycle('monthly')}
+          >
+            Monthly
+          </button>
+          <button
+            style={{
+              ...styles.toggleBtn,
+              background: billingCycle === 'yearly' ? 'white' : 'transparent',
+              color: billingCycle === 'yearly' ? '#0f172a' : '#64748b',
+              boxShadow: billingCycle === 'yearly' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+            }}
+            onClick={() => setBillingCycle('yearly')}
+          >
+            Yearly <span style={{ color: '#10b981', marginLeft: '4px' }}>Save 17%</span>
+          </button>
+        </div>
+
+        {/* Currency Toggle */}
+        <div style={styles.billingToggle}>
+          <button
+            style={{
+              ...styles.toggleBtn,
+              background: currency === 'USD' ? 'white' : 'transparent',
+              color: currency === 'USD' ? '#0f172a' : '#64748b',
+              boxShadow: currency === 'USD' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+            }}
+            onClick={() => setCurrency('USD')}
+          >
+            🇺🇸 USD
+          </button>
+          <button
+            style={{
+              ...styles.toggleBtn,
+              background: currency === 'INR' ? 'white' : 'transparent',
+              color: currency === 'INR' ? '#0f172a' : '#64748b',
+              boxShadow: currency === 'INR' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+            }}
+            onClick={() => setCurrency('INR')}
+          >
+            🇮🇳 INR
+          </button>
+        </div>
+      </div>
+
+      {/* Plan Cards */}
+      <div style={styles.plansContainer}>
+        {plans.map((plan) => (
+          <div
+            key={plan.id}
+            style={{
+              ...styles.planCard,
+              ...(selectedPlan === plan.id ? styles.planCardSelected : {}),
+              ...(plan.popular && selectedPlan !== plan.id ? styles.planCardPopular : {}),
+            }}
+            onClick={() => setSelectedPlan(plan.id)}
+          >
+            {plan.popular && (
+              <div style={styles.popularBadge}>⭐ Most Popular</div>
+            )}
+            <div style={styles.planName}>{plan.name}</div>
+            <div style={styles.teamSize}>{plan.teamSize}</div>
+            <div style={styles.priceContainer}>
+              <span style={styles.price}>{formatPrice(getPrice(plan))}</span>
+              <span style={styles.pricePeriod}>/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
+            </div>
+            {billingCycle === 'yearly' && (
+              <div style={styles.savings}>
+                Save {formatPrice(Math.round((plan.monthlyPrice * 12 - plan.yearlyPrice) * (currency === 'INR' ? exchangeRate : 1)))}/year
+              </div>
+            )}
+            <ul style={styles.featureList}>
+              {plan.features.map((feature, index) => (
+                <li key={index} style={styles.featureItem}>
+                  <span style={styles.checkIcon}>✓</span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      {/* CTA Section */}
+      <div style={styles.ctaSection}>
+        <div style={styles.selectedPlanInfo}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem' }}>
+            {selectedPlanData?.name} Plan Selected
+          </h3>
+          <p style={{ margin: 0, color: '#64748b', fontSize: '1.1rem' }}>
+            <strong style={{ color: '#0f172a', fontSize: '1.5rem' }}>
+              {formatPrice(getPrice(selectedPlanData!))}
+            </strong> / {billingCycle === 'yearly' ? 'year' : 'month'}
+          </p>
+        </div>
+
+        <button
+          style={{
+            ...styles.primaryBtn,
+            opacity: loading ? 0.7 : 1,
+          }}
+          onClick={handleRazorpayPayment}
+          disabled={loading}
+        >
+          {loading ? (
+            'Processing...'
+          ) : (
+            <>
+              <span>💳</span> Pay with Razorpay
+            </>
+          )}
+        </button>
+
+        {selectedPlan === 'enterprise' && (
+          <button style={styles.secondaryBtn} onClick={handleContactSales}>
+            📞 Contact Sales for Custom Pricing
+          </button>
+        )}
+
+        <div style={styles.paymentMethods}>
+          <span style={styles.paymentIcon}>💳 Cards</span>
+          <span style={styles.paymentIcon}>🏦 Net Banking</span>
+          <span style={styles.paymentIcon}>📱 UPI</span>
+          <span style={styles.paymentIcon}>💰 Wallets</span>
+        </div>
+
+        <div style={styles.securityNote}>
+          <span>🔒</span> Secured by Razorpay · 256-bit SSL encryption
+        </div>
+
+        <Link to="/" style={styles.backLink}>
+          ← Back to Home
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default PaymentsPage;
