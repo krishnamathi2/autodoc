@@ -18,8 +18,24 @@ const PaymentsPage = () => {
 
   const exchangeRate = 83; // Approximate USD to INR
 
-  // Razorpay.me payment link
-  const RAZORPAY_PAYMENT_LINK = 'https://razorpay.me/@mathivananponnusamy';
+  // PayPal.me link for USD payments
+  const PAYPAL_USERNAME = 'mathivananponnusamy';
+
+  // Razorpay Payment Links (INR) - Create these in Razorpay Dashboard > Payment Links
+  const razorpayLinks: { [key: string]: { monthly: string; yearly: string } } = {
+    starter: {
+      monthly: 'https://rzp.io/rzp/starter-monthly',  // ₹830/month
+      yearly: 'https://rzp.io/rzp/starter-yearly',    // ₹8,300/year
+    },
+    pro: {
+      monthly: 'https://rzp.io/rzp/pro-monthly',      // ₹2,075/month
+      yearly: 'https://rzp.io/rzp/pro-yearly',        // ₹20,750/year
+    },
+    enterprise: {
+      monthly: '',  // Contact sales
+      yearly: '',   // Contact sales
+    },
+  };
 
   const plans: Plan[] = [
     {
@@ -87,8 +103,24 @@ const PaymentsPage = () => {
   };
 
   const handlePayment = () => {
-    // Open Razorpay.me payment link in new tab
-    window.open(RAZORPAY_PAYMENT_LINK, '_blank');
+    const plan = plans.find(p => p.id === selectedPlan);
+    if (!plan) return;
+
+    if (currency === 'USD') {
+      // PayPal for USD payments
+      const amount = billingCycle === 'yearly' ? plan.yearlyPrice : plan.monthlyPrice;
+      const description = `${plan.name} Plan - ${billingCycle === 'yearly' ? 'Annual' : 'Monthly'}`;
+      const paypalUrl = `https://www.paypal.com/paypalme/${PAYPAL_USERNAME}/${amount}USD`;
+      window.open(paypalUrl, '_blank');
+    } else {
+      // Razorpay for INR payments
+      const razorpayLink = razorpayLinks[selectedPlan]?.[billingCycle];
+      if (razorpayLink) {
+        window.open(razorpayLink, '_blank');
+      } else {
+        alert('Payment link not configured. Please contact support.');
+      }
+    }
   };
 
   const handleContactSales = () => {
@@ -481,7 +513,11 @@ const PaymentsPage = () => {
               style={styles.payBtn}
               onClick={handlePayment}
             >
-              <span>💳</span> Pay with Razorpay
+              {currency === 'USD' ? (
+                <><span>💳</span> Pay with PayPal</>
+              ) : (
+                <><span>💳</span> Pay with Razorpay</>
+              )}
             </button>
           )}
 
@@ -490,14 +526,24 @@ const PaymentsPage = () => {
           </Link>
 
           <div style={styles.secureNote}>
-            <span>🔒</span> Secured by Razorpay. 256-bit SSL encryption.
+            <span>🔒</span> {currency === 'USD' ? 'Secured by PayPal.' : 'Secured by Razorpay.'} 256-bit SSL encryption.
           </div>
 
           <div style={styles.paymentMethods}>
-            <span style={styles.paymentMethod}>💳 Cards</span>
-            <span style={styles.paymentMethod}>🏦 Net Banking</span>
-            <span style={styles.paymentMethod}>📱 UPI</span>
-            <span style={styles.paymentMethod}>💰 Wallets</span>
+            {currency === 'USD' ? (
+              <>
+                <span style={styles.paymentMethod}>💳 Cards</span>
+                <span style={styles.paymentMethod}>🏦 Bank Account</span>
+                <span style={styles.paymentMethod}>💰 PayPal Balance</span>
+              </>
+            ) : (
+              <>
+                <span style={styles.paymentMethod}>💳 Cards</span>
+                <span style={styles.paymentMethod}>🏦 Net Banking</span>
+                <span style={styles.paymentMethod}>📱 UPI</span>
+                <span style={styles.paymentMethod}>💰 Wallets</span>
+              </>
+            )}
           </div>
         </div>
       </div>
