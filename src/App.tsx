@@ -14,6 +14,7 @@ import SignInPage from './components/SignInPage';
 import DashboardPage from './components/DashboardPage'; 
 import PaymentsPage from './components/PaymentsPage';
 import ComparePage from './components/ComparePage';
+import GitHubCallbackPage from './components/GitHubCallbackPage';
  
 function App() { 
   return ( 
@@ -37,6 +38,9 @@ function App() {
         <Route path="/signin" element={<SignInPage />} /> 
         <Route path="/dashboard" element={<DashboardPage />} /> 
         <Route path="/payments" element={<PaymentsPage />} />
+        
+        {/* GitHub OAuth Callback */}
+        <Route path="/github/callback" element={<GitHubCallbackPage />} />
         
         {/* Optional: 404 Page */}
         <Route path="*" element={

@@ -65,7 +65,7 @@ const PaymentsPage = () => {
         'Export security reports',
         'Priority support',
         'Team collaboration',
-        'API access',
+        'GitHub integration',
       ],
     },
     {

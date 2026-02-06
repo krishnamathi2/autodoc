@@ -66,7 +66,23 @@ export const signInWithGitHub = async () => {
     return { success: true, user: result.user };
   } catch (error: any) {
     console.error('GitHub sign-in error:', error);
-    return { success: false, error: error.message };
+    
+    // Handle specific Firebase auth errors
+    let errorMessage = error.message;
+    
+    if (error.code === 'auth/account-exists-with-different-credential') {
+      errorMessage = 'An account already exists with this email using a different sign-in method. Please sign in with that method first.';
+    } else if (error.code === 'auth/popup-blocked') {
+      errorMessage = 'Sign-in popup was blocked. Please allow popups for this site.';
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      errorMessage = 'Sign-in was cancelled.';
+    } else if (error.code === 'auth/unauthorized-domain') {
+      errorMessage = 'This domain is not authorized for GitHub sign-in. Please add it to Firebase Console.';
+    } else if (error.code === 'auth/operation-not-allowed') {
+      errorMessage = 'GitHub sign-in is not enabled. Please enable it in Firebase Console.';
+    }
+    
+    return { success: false, error: errorMessage };
   }
 };
 

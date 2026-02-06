@@ -1,5 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  initiateGitHubOAuth, 
+  isGitHubConnected, 
+  getGitHubUser, 
+  removeGitHubToken,
+  fetchGitHubRepos,
+  fetchFileContent,
+  fetchRepoContents,
+  GitHubRepo,
+  GitHubUser,
+  GitHubFile
+} from '../services/github';
 
 interface Vulnerability {
   id: number;
@@ -24,6 +36,91 @@ const InteractiveDemoAfterTrialSignIn = () => {
   const [showCompareView, setShowCompareView] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  // GitHub Integration State
+  const [githubConnected, setGithubConnected] = useState<boolean>(false);
+  const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
+  const [githubRepos, setGithubRepos] = useState<GitHubRepo[]>([]);
+  const [showRepoModal, setShowRepoModal] = useState<boolean>(false);
+  const [loadingRepos, setLoadingRepos] = useState<boolean>(false);
+  const [selectedRepo, setSelectedRepo] = useState<GitHubRepo | null>(null);
+  const [repoFiles, setRepoFiles] = useState<GitHubFile[]>([]);
+  const [showFileModal, setShowFileModal] = useState<boolean>(false);
+  const [loadingFiles, setLoadingFiles] = useState<boolean>(false);
+  const [currentPath, setCurrentPath] = useState<string>('');
+
+  // Check GitHub connection on mount
+  useEffect(() => {
+    if (isGitHubConnected()) {
+      setGithubConnected(true);
+      const user = getGitHubUser();
+      if (user) setGithubUser(user);
+    }
+  }, []);
+
+  // GitHub handlers
+  const handleConnectGitHub = () => {
+    initiateGitHubOAuth();
+  };
+
+  const handleDisconnectGitHub = () => {
+    removeGitHubToken();
+    setGithubConnected(false);
+    setGithubUser(null);
+    setGithubRepos([]);
+    setSelectedRepo(null);
+  };
+
+  const loadGitHubRepos = async () => {
+    setLoadingRepos(true);
+    const repos = await fetchGitHubRepos();
+    setGithubRepos(repos);
+    setLoadingRepos(false);
+    setShowRepoModal(true);
+  };
+
+  const handleSelectRepo = async (repo: GitHubRepo) => {
+    setSelectedRepo(repo);
+    setShowRepoModal(false);
+    setLoadingFiles(true);
+    setCurrentPath('');
+    const files = await fetchRepoContents(repo.full_name.split('/')[0], repo.name, '');
+    setRepoFiles(files);
+    setLoadingFiles(false);
+    setShowFileModal(true);
+  };
+
+  const handleNavigateFolder = async (path: string) => {
+    if (!selectedRepo) return;
+    setLoadingFiles(true);
+    setCurrentPath(path);
+    const files = await fetchRepoContents(selectedRepo.full_name.split('/')[0], selectedRepo.name, path);
+    setRepoFiles(files);
+    setLoadingFiles(false);
+  };
+
+  const handleSelectFile = async (file: GitHubFile) => {
+    if (file.type === 'dir') {
+      handleNavigateFolder(file.path);
+      return;
+    }
+    
+    if (!selectedRepo) return;
+    setLoadingFiles(true);
+    const content = await fetchFileContent(selectedRepo.full_name.split('/')[0], selectedRepo.name, file.path);
+    setLoadingFiles(false);
+    setShowFileModal(false);
+    
+    if (content) {
+      setUploadedCode(content);
+      setFileName(file.name);
+      setScanComplete(false);
+      setVulnerabilities([]);
+      setFixedCode(null);
+      setShowFixedCode(false);
+      setShowCompareView(false);
+    }
+  };
 
   const scanForVulnerabilities = (code: string): Vulnerability[] => {
     const vulns: Vulnerability[] = [];
@@ -584,6 +681,376 @@ ${lowCount > 0 ? `
           ✅ Free Trial Active - 3 Days Remaining
         </div>
       </div>
+
+      {/* GitHub Integration Card */}
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto 40px',
+        padding: '25px 30px',
+        background: isDarkTheme ? '#1e293b' : 'white',
+        borderRadius: '12px',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap' as const,
+        gap: '20px',
+        borderLeft: githubConnected ? '4px solid #22c55e' : '4px solid #6366f1',
+      }}>
+        <div style={{ flex: 1 }}>
+          <h3 style={{
+            fontSize: '1.2rem',
+            fontWeight: 700,
+            color: isDarkTheme ? '#e2e8f0' : '#1e293b',
+            marginBottom: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}>
+            <svg height="24" viewBox="0 0 16 16" width="24" fill={isDarkTheme ? '#e2e8f0' : '#1e293b'}>
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            GitHub Integration
+            {githubConnected && (
+              <span style={{
+                background: '#22c55e',
+                color: 'white',
+                padding: '3px 10px',
+                borderRadius: '10px',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+              }}>
+                Connected
+              </span>
+            )}
+          </h3>
+          <p style={{ color: isDarkTheme ? '#94a3b8' : '#64748b', fontSize: '0.95rem', margin: 0 }}>
+            {githubConnected 
+              ? `Connected as ${githubUser?.login || 'GitHub User'}. Import code directly from your repositories.`
+              : 'Connect your GitHub account to scan repositories directly.'}
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' as const }}>
+          {githubConnected ? (
+            <>
+              <button 
+                style={{
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'transform 0.2s',
+                }}
+                onClick={loadGitHubRepos}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                📂 Import from GitHub
+              </button>
+              <button 
+                style={{
+                  padding: '10px 20px',
+                  background: isDarkTheme ? '#334155' : '#e2e7eb',
+                  color: isDarkTheme ? '#e2e8f0' : '#1e293b',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                  transition: 'transform 0.2s',
+                }}
+                onClick={handleDisconnectGitHub}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                Disconnect
+              </button>
+            </>
+          ) : (
+            <button 
+              style={{
+                padding: '10px 20px',
+                background: isDarkTheme ? '#1e293b' : '#24292e',
+                color: 'white',
+                border: '1px solid #30363d',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s',
+              }}
+              onClick={handleConnectGitHub}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <svg height="16" viewBox="0 0 16 16" width="16" fill="white">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+              </svg>
+              Connect GitHub
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* GitHub Repository Selection Modal */}
+      {showRepoModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }}>
+          <div style={{
+            background: isDarkTheme ? '#1e293b' : 'white',
+            borderRadius: '16px',
+            padding: '30px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+            }}>
+              <h2 style={{
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                color: isDarkTheme ? '#e2e8f0' : '#1e293b',
+                margin: 0,
+              }}>
+                Select Repository
+              </h2>
+              <button
+                onClick={() => setShowRepoModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  color: isDarkTheme ? '#94a3b8' : '#64748b',
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {loadingRepos ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <p style={{ color: isDarkTheme ? '#94a3b8' : '#64748b' }}>Loading repositories...</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {githubRepos.map((repo) => (
+                  <div
+                    key={repo.id}
+                    style={{
+                      padding: '15px',
+                      background: isDarkTheme ? '#0f172a' : '#f8fafc',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      border: '1px solid transparent',
+                    }}
+                    onClick={() => handleSelectRepo(repo)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#3b82f6';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'transparent';
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h4 style={{
+                          fontSize: '1rem',
+                          fontWeight: 600,
+                          color: isDarkTheme ? '#e2e8f0' : '#1e293b',
+                          margin: '0 0 5px 0',
+                        }}>
+                          {repo.private && '🔒 '}{repo.name}
+                        </h4>
+                        <p style={{
+                          fontSize: '0.85rem',
+                          color: isDarkTheme ? '#94a3b8' : '#64748b',
+                          margin: 0,
+                        }}>
+                          {repo.description || 'No description'}
+                        </p>
+                      </div>
+                      {repo.language && (
+                        <span style={{
+                          padding: '4px 10px',
+                          background: isDarkTheme ? '#334155' : '#e2e7eb',
+                          borderRadius: '12px',
+                          fontSize: '0.75rem',
+                          color: isDarkTheme ? '#94a3b8' : '#64748b',
+                        }}>
+                          {repo.language}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* GitHub File Selection Modal */}
+      {showFileModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }}>
+          <div style={{
+            background: isDarkTheme ? '#1e293b' : 'white',
+            borderRadius: '16px',
+            padding: '30px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+            }}>
+              <div>
+                <h2 style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 700,
+                  color: isDarkTheme ? '#e2e8f0' : '#1e293b',
+                  margin: 0,
+                }}>
+                  {selectedRepo?.name}
+                </h2>
+                <p style={{
+                  fontSize: '0.85rem',
+                  color: isDarkTheme ? '#94a3b8' : '#64748b',
+                  margin: '5px 0 0',
+                }}>
+                  {currentPath || '/'}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowFileModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  color: isDarkTheme ? '#94a3b8' : '#64748b',
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {currentPath && (
+              <button
+                onClick={() => {
+                  const parentPath = currentPath.split('/').slice(0, -1).join('/');
+                  handleNavigateFolder(parentPath);
+                }}
+                style={{
+                  padding: '10px 15px',
+                  background: isDarkTheme ? '#0f172a' : '#f8fafc',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  marginBottom: '15px',
+                  color: isDarkTheme ? '#94a3b8' : '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                ⬆️ Go Back
+              </button>
+            )}
+            
+            {loadingFiles ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <p style={{ color: isDarkTheme ? '#94a3b8' : '#64748b' }}>Loading files...</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {repoFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      padding: '12px 15px',
+                      background: isDarkTheme ? '#0f172a' : '#f8fafc',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      border: '1px solid transparent',
+                    }}
+                    onClick={() => handleSelectFile(file)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#3b82f6';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'transparent';
+                    }}
+                  >
+                    <span style={{ fontSize: '1.2rem' }}>
+                      {file.type === 'dir' ? '📁' : '📄'}
+                    </span>
+                    <span style={{
+                      color: isDarkTheme ? '#e2e8f0' : '#1e293b',
+                      fontWeight: file.type === 'dir' ? 600 : 400,
+                    }}>
+                      {file.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div style={styles.demoContainer}>
         {showCompareView ? (

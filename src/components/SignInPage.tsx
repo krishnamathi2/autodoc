@@ -31,6 +31,9 @@ function SignInPage() {
     acceptTerms: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   const toggleTheme = () => {
@@ -324,16 +327,26 @@ function SignInPage() {
                   
                   <div className="form-group">
                     <label htmlFor="loginPassword">Password *</label>
-                    <input
-                      type="password"
-                      id="loginPassword"
-                      name="password"
-                      value={loginData.password}
-                      onChange={handleLoginChange}
-                      required
-                      placeholder="Enter your password"
-                      className={loginErrors.password ? 'input-error' : ''}
-                    />
+                    <div className="password-input-wrapper">
+                      <input
+                        type={showLoginPassword ? "text" : "password"}
+                        id="loginPassword"
+                        name="password"
+                        value={loginData.password}
+                        onChange={handleLoginChange}
+                        required
+                        placeholder="Enter your password"
+                        className={loginErrors.password ? 'input-error' : ''}
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                      >
+                        {showLoginPassword ? '🙈' : '👁️'}
+                      </button>
+                    </div>
                     {loginErrors.password && <div className="error-text">{loginErrors.password}</div>}
                   </div>
                   
@@ -413,16 +426,26 @@ function SignInPage() {
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="signupPassword">Password *</label>
-                      <input
-                        type="password"
-                        id="signupPassword"
-                        name="password"
-                        value={signupData.password}
-                        onChange={handleSignupChange}
-                        required
-                        placeholder="Create a password"
-                        className={signupErrors.password ? 'input-error' : ''}
-                      />
+                      <div className="password-input-wrapper">
+                        <input
+                          type={showSignupPassword ? "text" : "password"}
+                          id="signupPassword"
+                          name="password"
+                          value={signupData.password}
+                          onChange={handleSignupChange}
+                          required
+                          placeholder="Create a password"
+                          className={signupErrors.password ? 'input-error' : ''}
+                        />
+                        <button
+                          type="button"
+                          className="password-toggle-btn"
+                          onClick={() => setShowSignupPassword(!showSignupPassword)}
+                          aria-label={showSignupPassword ? "Hide password" : "Show password"}
+                        >
+                          {showSignupPassword ? '🙈' : '👁️'}
+                        </button>
+                      </div>
                       <div className="password-hint">
                         Minimum 8 characters with letters and numbers
                       </div>
@@ -441,16 +464,26 @@ function SignInPage() {
                     
                     <div className="form-group">
                       <label htmlFor="confirmPassword">Confirm Password *</label>
-                      <input
-                        type="password"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        value={signupData.confirmPassword}
-                        onChange={handleSignupChange}
-                        required
-                        placeholder="Confirm your password"
-                        className={signupErrors.confirmPassword ? 'input-error' : ''}
-                      />
+                      <div className="password-input-wrapper">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          value={signupData.confirmPassword}
+                          onChange={handleSignupChange}
+                          required
+                          placeholder="Confirm your password"
+                          className={signupErrors.confirmPassword ? 'input-error' : ''}
+                        />
+                        <button
+                          type="button"
+                          className="password-toggle-btn"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                        >
+                          {showConfirmPassword ? '🙈' : '👁️'}
+                        </button>
+                      </div>
                       {signupErrors.confirmPassword && <div className="error-text">{signupErrors.confirmPassword}</div>}
                     </div>
                   </div>
@@ -515,54 +548,6 @@ function SignInPage() {
                     <span className="social-icon">🪟</span>
                     Microsoft
                   </button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="signin-right">
-              <div className="signin-features">
-                <h2>Why Sign In?</h2>
-                
-                <div className="feature-list">
-                  <div className="feature-item">
-                    <div className="feature-icon">🚀</div>
-                    <div className="feature-content">
-                      <h3>Access Your Dashboard</h3>
-                      <p>Get 14 mins of unlimited security scanning and automated fixes</p>
-                    </div>
-                  </div>
-                  
-                  <div className="feature-item">
-                    <div className="feature-icon">📊</div>
-                    <div className="feature-content">
-                      <h3>Security Analytics</h3>
-                      <p>View security insights, compliance reports, and team analytics</p>
-                    </div>
-                  </div>
-                  
-                  <div className="feature-item">
-                    <div className="feature-icon">🔧</div>
-                    <div className="feature-content">
-                      <h3>Manage Projects</h3>
-                      <p>Connect repositories, configure scans, and automate security</p>
-                    </div>
-                  </div>
-                  
-                  <div className="feature-item">
-                    <div className="feature-icon">👥</div>
-                    <div className="feature-content">
-                      <h3>Team Collaboration</h3>
-                      <p>Invite team members and manage security workflows</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="security-note">
-                  <div className="security-icon">🔒</div>
-                  <div className="security-content">
-                    <strong>Enterprise-grade security</strong>
-                    <p>Your code is never stored. All analysis happens securely in-memory.</p>
-                  </div>
                 </div>
               </div>
             </div>

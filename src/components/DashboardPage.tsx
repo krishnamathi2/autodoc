@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { 
+  initiateGitHubOAuth, 
+  isGitHubConnected, 
+  getGitHubUser, 
+  removeGitHubToken,
+  fetchGitHubRepos,
+  GitHubRepo,
+  GitHubUser
+} from '../services/github';
 
 // Define TypeScript interfaces
 interface Vulnerability {
@@ -69,7 +78,67 @@ function DashboardPage() {
   });
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   
+  // GitHub Integration State
+  const [searchParams] = useSearchParams();
+  const [githubConnected, setGithubConnected] = useState<boolean>(false);
+  const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
+  const [githubRepos, setGithubRepos] = useState<GitHubRepo[]>([]);
+  const [showRepoModal, setShowRepoModal] = useState<boolean>(false);
+  const [loadingRepos, setLoadingRepos] = useState<boolean>(false);
+  
   const navigate = useNavigate();
+
+  // Check GitHub connection status on mount
+  useEffect(() => {
+    const checkGitHubConnection = async () => {
+      if (isGitHubConnected()) {
+        setGithubConnected(true);
+        const user = getGitHubUser();
+        if (user) {
+          setGithubUser(user);
+        }
+      }
+      
+      // Check if just connected via callback
+      if (searchParams.get('github') === 'connected') {
+        setGithubConnected(true);
+        const user = getGitHubUser();
+        if (user) {
+          setGithubUser(user);
+        }
+      }
+    };
+    checkGitHubConnection();
+  }, [searchParams]);
+
+  // Load GitHub repos when connected
+  const loadGitHubRepos = async () => {
+    setLoadingRepos(true);
+    const repos = await fetchGitHubRepos();
+    setGithubRepos(repos);
+    setLoadingRepos(false);
+    setShowRepoModal(true);
+  };
+
+  // Handle GitHub connect
+  const handleConnectGitHub = () => {
+    initiateGitHubOAuth();
+  };
+
+  // Handle GitHub disconnect
+  const handleDisconnectGitHub = () => {
+    removeGitHubToken();
+    setGithubConnected(false);
+    setGithubUser(null);
+    setGithubRepos([]);
+  };
+
+  // Handle repo selection for scanning
+  const handleScanRepo = (repo: GitHubRepo) => {
+    setShowRepoModal(false);
+    // Navigate to workspace with repo info
+    navigate(`/workspace?repo=${repo.full_name}&branch=${repo.default_branch}`);
+  };
 
   // Check trial status on component mount
   useEffect(() => {
@@ -842,6 +911,256 @@ function DashboardPage() {
           </button>
         </div>
       </div>
+
+      {/* GitHub Integration Card */}
+      <div style={{
+        ...styles.welcomeCard,
+        borderLeftColor: githubConnected ? '#22c55e' : '#6366f1',
+        marginBottom: '30px',
+      }}>
+        <div style={styles.welcomeContent}>
+          <h2 style={{...styles.welcomeTitle, gap: '12px'}}>
+            <svg height="24" viewBox="0 0 16 16" width="24" fill={isDarkTheme ? '#e2e8f0' : '#1e293b'}>
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            GitHub Integration
+            {githubConnected && (
+              <span style={{
+                background: '#22c55e',
+                color: 'white',
+                padding: '4px 12px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+              }}>
+                Connected
+              </span>
+            )}
+          </h2>
+          <p style={styles.welcomeText}>
+            {githubConnected 
+              ? `Connected as ${githubUser?.login || 'GitHub User'}. Select a repository to scan for vulnerabilities.`
+              : 'Connect your GitHub account to scan repositories directly and enable automatic security monitoring.'}
+          </p>
+        </div>
+        <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+          {githubConnected ? (
+            <>
+              <button 
+                style={{
+                  ...styles.actionButton,
+                  background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                }}
+                onClick={loadGitHubRepos}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                📂 Select Repository
+              </button>
+              <button 
+                style={{
+                  ...styles.actionButton,
+                  background: isDarkTheme ? '#334155' : '#e2e7eb',
+                  color: isDarkTheme ? '#e2e8f0' : '#1e293b',
+                }}
+                onClick={handleDisconnectGitHub}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                Disconnect
+              </button>
+            </>
+          ) : (
+            <button 
+              style={{
+                ...styles.actionButton,
+                background: isDarkTheme ? '#1e293b' : '#24292e',
+                border: '1px solid #30363d',
+              }}
+              onClick={handleConnectGitHub}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <svg height="16" viewBox="0 0 16 16" width="16" fill="white">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+              </svg>
+              Connect GitHub
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* GitHub Repository Selection Modal */}
+      {showRepoModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+        }}>
+          <div style={{
+            background: isDarkTheme ? '#1e293b' : 'white',
+            borderRadius: '16px',
+            padding: '30px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+            }}>
+              <h2 style={{
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                color: isDarkTheme ? '#e2e8f0' : '#1e293b',
+                margin: 0,
+              }}>
+                Select Repository to Scan
+              </h2>
+              <button
+                onClick={() => setShowRepoModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  color: isDarkTheme ? '#94a3b8' : '#64748b',
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {loadingRepos ? (
+              <div style={{textAlign: 'center', padding: '40px'}}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  border: '4px solid rgba(59, 130, 246, 0.2)',
+                  borderTopColor: '#3b82f6',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                  margin: '0 auto 20px',
+                }} />
+                <p style={{color: isDarkTheme ? '#94a3b8' : '#64748b'}}>
+                  Loading repositories...
+                </p>
+              </div>
+            ) : (
+              <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                {githubRepos.length === 0 ? (
+                  <p style={{
+                    textAlign: 'center',
+                    color: isDarkTheme ? '#94a3b8' : '#64748b',
+                    padding: '40px',
+                  }}>
+                    No repositories found. Make sure you have repositories in your GitHub account.
+                  </p>
+                ) : (
+                  githubRepos.map((repo) => (
+                    <div
+                      key={repo.id}
+                      style={{
+                        padding: '15px',
+                        background: isDarkTheme ? '#0f172a' : '#f8fafc',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        border: '1px solid transparent',
+                      }}
+                      onClick={() => handleScanRepo(repo)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#3b82f6';
+                        e.currentTarget.style.transform = 'translateX(5px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'transparent';
+                        e.currentTarget.style.transform = 'translateX(0)';
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                      }}>
+                        <div>
+                          <h3 style={{
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            color: isDarkTheme ? '#e2e8f0' : '#1e293b',
+                            marginBottom: '5px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}>
+                            {repo.private && <span>🔒</span>}
+                            {repo.name}
+                          </h3>
+                          <p style={{
+                            fontSize: '0.85rem',
+                            color: isDarkTheme ? '#94a3b8' : '#64748b',
+                            margin: 0,
+                          }}>
+                            {repo.description || 'No description'}
+                          </p>
+                        </div>
+                        <div style={{
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'center',
+                        }}>
+                          {repo.language && (
+                            <span style={{
+                              padding: '4px 10px',
+                              background: isDarkTheme ? '#334155' : '#e2e7eb',
+                              borderRadius: '12px',
+                              fontSize: '0.75rem',
+                              color: isDarkTheme ? '#94a3b8' : '#64748b',
+                            }}>
+                              {repo.language}
+                            </span>
+                          )}
+                          <span style={{
+                            fontSize: '0.85rem',
+                            color: isDarkTheme ? '#94a3b8' : '#64748b',
+                          }}>
+                            ⭐ {repo.stargazers_count}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <div style={styles.tabs}>
