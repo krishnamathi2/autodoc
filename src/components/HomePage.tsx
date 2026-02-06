@@ -496,7 +496,7 @@ const HomePage = () => {
       <header style={headerStyles.header}>
         <div style={headerStyles.navContainer}>
           <div style={headerStyles.logoContainer}>
-            <h1 style={headerStyles.logo} onClick={handleLogoClick}>
+            <h1 style={headerStyles.logo}>
               AutoDoc
             </h1>
             <span style={headerStyles.tagline}>World's First Automated Security Remediation Platform</span>
