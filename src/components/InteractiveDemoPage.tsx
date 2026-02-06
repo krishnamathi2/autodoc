@@ -1382,7 +1382,7 @@ const config = {
           </p>
           <button 
             style={styles.ctaButton}
-            onClick={() => navigate('/free-trial')}
+            onClick={() => navigate('/signin')}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
               e.currentTarget.style.boxShadow = '0 10px 25px rgba(16, 185, 129, 0.3)';

@@ -3,150 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [showPricingModal, setShowPricingModal] = useState(false);
-  const [testMode, setTestMode] = useState(true);
-  const [userCurrency, setUserCurrency] = useState<'INR' | 'USD'>('INR');
-  const [paymentLoading, setPaymentLoading] = useState(false);
-
-  // Test amounts (for testing purposes)
-  const TEST_PRICE_INR = 100;  // ₹100 for testing
-  const TEST_PRICE_USD = 1;    // $1 for testing
-  
-  // Production prices
-  const USD_TO_INR_RATE = 83;
-  const PRO_PLAN_PRICE_USD = 49;
-  const PRO_PLAN_PRICE_INR = PRO_PLAN_PRICE_USD * USD_TO_INR_RATE;
-
-  // Check if we're in test mode and detect user's location
-  useEffect(() => {
-    const isTestMode = window.location.hostname === 'localhost' ||
-                      window.location.hostname.includes('test');
-    setTestMode(isTestMode);
-
-    // Simple currency detection based on timezone
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const isUS = timezone.includes('America') || 
-                 timezone.includes('New_York') || 
-                 timezone.includes('Los_Angeles');
-    setUserCurrency(isUS ? 'USD' : 'INR');
-  }, []);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (showPricingModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showPricingModal]);
-
-  const handlePricingClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setShowPricingModal(true);
-  };
-
-  const handleLogoClick = () => {
-    navigate('/');
-  };
-
-  // Handle payment with Razorpay Payment Link
-  const handlePayment = () => {
-    setPaymentLoading(true);
-    setShowPricingModal(false);
-    
-    // Redirect to Razorpay payment page
-    window.open('https://razorpay.me/@mathivananponnusamy', '_blank');
-    
-    // Store pending payment info (user will confirm after returning)
-    localStorage.setItem('autodoc_payment_pending', 'true');
-    
-    setPaymentLoading(false);
-    
-    // Show confirmation dialog
-    setTimeout(() => {
-      const confirmed = window.confirm(
-        'After completing payment on Razorpay, click OK to activate your Pro plan.'
-      );
-      
-      if (confirmed) {
-        // Store subscription data
-        localStorage.setItem('autodoc_trial', JSON.stringify({
-          started: new Date().toISOString(),
-          plan: 'Pro',
-          currency: userCurrency,
-          amount: userCurrency === 'INR' ? TEST_PRICE_INR : TEST_PRICE_USD
-        }));
-        localStorage.removeItem('autodoc_payment_pending');
-        navigate('/dashboard');
-      }
-    }, 1000);
-  };
-
-  // Handle currency switch
-  const handleCurrencySwitch = (currency: 'INR' | 'USD') => {
-    setUserCurrency(currency);
-  };
-
-  // Pricing plans data
-  const pricingPlans = [
-    {
-      name: 'Free',
-      price: '$0',
-      description: 'For individuals and small projects',
-      features: [
-        'Up to 1,000 lines of code per scan',
-        'Basic vulnerability scanning',
-        '5 auto-fixes per month',
-        'Community support',
-        'Public workspace access',
-      ],
-      buttonText: 'Get Started Free',
-      highlighted: false,
-      onClick: () => {
-        setShowPricingModal(false);
-        navigate('/workspace');
-      },
-    },
-    {
-      name: 'Pro',
-      price: '$49',
-      description: 'For professional developers and teams',
-      features: [
-        'Up to 10,000 lines of code per scan',
-        'Advanced vulnerability scanning',
-        'Unlimited auto-fixes',
-        'Priority support',
-        'Private repositories',
-        'Custom security rules',
-      ],
-      buttonText: 'Start 14-Min Free Trial',
-      highlighted: true,
-    },
-    {
-      name: 'Enterprise',
-      price: 'Custom',
-      description: 'For large organizations',
-      features: [
-        'Unlimited code scanning',
-        'Enterprise-grade security',
-        'Dedicated support team',
-        'On-premise deployment',
-        'Custom integrations',
-        'SLA guarantees',
-        'Security compliance',
-      ],
-      buttonText: 'Contact Sales',
-      highlighted: false,
-      onClick: () => {
-        setShowPricingModal(false);
-        window.location.href = 'mailto:sales@autodoc.com?subject=Enterprise%20Inquiry';
-      },
-    },
-  ];
 
   // Styles
   const styles = {
@@ -659,27 +515,8 @@ const HomePage = () => {
               Try AutoDoc
             </Link>
             <Link 
-              to="/why-autodoc" 
-              style={headerStyles.navLink}
-            >
-              Why AutoDoc?
-            </Link>
-            <a 
-              href="#" 
-              style={headerStyles.navLink}
-              onClick={handlePricingClick}
-            >
-              Pricing
-            </a>
-            <Link 
-              to="/free-trial" 
-              style={headerStyles.ctaButton}
-            >
-              Start Free Trial
-            </Link>
-            <Link 
               to="/signin" 
-              style={headerStyles.navLink}
+              style={headerStyles.ctaButton}
             >
               Sign In
             </Link>
@@ -701,14 +538,8 @@ const HomePage = () => {
             </p>
             <div style={styles.heroButtons}>
               <Link 
-                to="/free-trial" 
-                style={combineStyles(styles.btn, styles.btnPrimary)}
-              >
-                Start Free Trial
-              </Link>
-              <Link 
                 to="/signin" 
-                style={combineStyles(styles.btn, styles.btnSecondary)}
+                style={combineStyles(styles.btn, styles.btnPrimary)}
               >
                 Try AutoDoc Free
               </Link>
@@ -830,14 +661,6 @@ app.get('/user/:id', (req, res) => {
               </div>
             </div>
           </div>
-          <div style={{textAlign: 'center'}}>
-            <Link 
-              to="/interactive-demo" 
-              style={combineStyles(styles.btn, {background: 'transparent', color: '#2563eb', border: '2px solid #2563eb'})}
-            >
-              Learn More About Our Technology →
-            </Link>
-          </div>
         </section>
 
         {/* Use Cases */}
@@ -896,16 +719,10 @@ app.get('/user/:id', (req, res) => {
             </p>
             <div style={styles.ctaButtons}>
               <Link 
-                to="/free-trial" 
+                to="/signin" 
                 style={combineStyles(styles.btn, styles.btnPrimary, styles.btnLarge)}
               >
-                Start Your Free Trial
-              </Link>
-              <Link 
-                to="/signin" 
-                style={combineStyles(styles.btn, styles.btnSecondary, styles.btnLarge)}
-              >
-                Try AutoDoc Free
+                Try AutoDoc Now
               </Link>
             </div>
             <p style={styles.ctaNote}>
@@ -923,12 +740,6 @@ app.get('/user/:id', (req, res) => {
             <Link to="/signin" style={styles.footerLink}>
               Try AutoDoc
             </Link>
-            <Link to="/why-autodoc" style={styles.footerLink}>
-              Why AutoDoc?
-            </Link>
-            <a href="#" style={styles.footerLink} onClick={handlePricingClick}>
-              Pricing
-            </a>
             <a href="#" style={styles.footerLink} onClick={(e) => {
               e.preventDefault();
               window.location.href = 'mailto:contact@autodoc.com?subject=Contact%20Inquiry';
@@ -941,209 +752,6 @@ app.get('/user/:id', (req, res) => {
           </div>
         </footer>
       </div>
-
-      {/* Pricing Modal */}
-      {showPricingModal && (
-        <div style={styles.pricingModal} onClick={() => setShowPricingModal(false)}>
-          <div style={styles.pricingModalContent} onClick={(e) => e.stopPropagation()}>
-            <button 
-              style={styles.closeButton}
-              onClick={() => setShowPricingModal(false)}
-            >
-              ×
-            </button>
-            <h2 style={styles.pricingTitle}>Choose Your Plan</h2>
-            
-            {/* Test Mode Indicator */}
-            {testMode && (
-              <div style={{
-                background: '#fef3c7',
-                color: '#92400e',
-                padding: '10px 15px',
-                borderRadius: '6px',
-                marginBottom: '20px',
-                border: '1px solid #f59e0b',
-                textAlign: 'center'
-              }}>
-                🧪 <strong>TEST MODE</strong> - Demo billing environment active
-              </div>
-            )}
-            
-            <div style={styles.pricingGrid}>
-              {pricingPlans.map((plan, index) => (
-                <div 
-                  key={index}
-                  style={combineStyles(
-                    styles.pricingCard, 
-                    plan.highlighted ? styles.pricingCardHighlighted : {}
-                  )}
-                >
-                  <h3 style={styles.planName}>{plan.name}</h3>
-                  
-                  {/* Dual Currency Display for Pro Plan */}
-                  {plan.name === 'Pro' ? (
-                    <>
-                      <div style={{ marginBottom: '20px' }}>
-                        {/* Currency Switch */}
-                        <div style={{
-                          display: 'flex',
-                          background: '#f3f4f6',
-                          borderRadius: '8px',
-                          padding: '4px',
-                          marginBottom: '15px'
-                        }}>
-                          <button
-                            onClick={() => handleCurrencySwitch('USD')}
-                            style={{
-                              flex: 1,
-                              padding: '10px',
-                              background: userCurrency === 'USD' ? '#2563eb' : 'transparent',
-                              color: userCurrency === 'USD' ? 'white' : '#666',
-                              border: 'none',
-                              borderRadius: '6px',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            USD
-                          </button>
-                          <button
-                            onClick={() => handleCurrencySwitch('INR')}
-                            style={{
-                              flex: 1,
-                              padding: '10px',
-                              background: userCurrency === 'INR' ? '#2563eb' : 'transparent',
-                              color: userCurrency === 'INR' ? 'white' : '#666',
-                              border: 'none',
-                              borderRadius: '6px',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            INR
-                          </button>
-                        </div>
-                        
-                        {/* Price Display */}
-                        <div style={styles.planPrice}>
-                          {userCurrency === 'USD' ? '$49' : `₹${PRO_PLAN_PRICE_INR}`}
-                          <span style={styles.pricePeriod}>/month</span>
-                        </div>
-                        
-                        {/* Conversion Note */}
-                        <p style={{ color: '#666', fontSize: '0.9rem' }}>
-                          {userCurrency === 'USD' 
-                            ? `≈ ₹${PRO_PLAN_PRICE_INR} (₹1 = $${(1/USD_TO_INR_RATE).toFixed(4)})`
-                            : `≈ $${PRO_PLAN_PRICE_USD} ($1 = ₹${USD_TO_INR_RATE})`
-                          }
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <div style={styles.planPrice}>
-                      {plan.price}
-                      {plan.price !== 'Custom' && <span style={styles.pricePeriod}>/month</span>}
-                    </div>
-                  )}
-                  
-                  <p style={{color: '#666', marginBottom: '20px'}}>{plan.description}</p>
-                  <ul style={styles.planFeatures}>
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} style={styles.planFeature}>
-                        <span style={styles.featureIcon}>✓</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  {plan.name === 'Pro' ? (
-                    // Payment Options for Pro Plan
-                    <div style={{ marginTop: '25px' }}>
-                      <button
-                        onClick={handlePayment}
-                        disabled={paymentLoading}
-                        style={{
-                          width: '100%',
-                          padding: '15px',
-                          background: paymentLoading ? '#9ca3af' : (userCurrency === 'INR' ? '#2563eb' : '#059669'),
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontWeight: 600,
-                          cursor: paymentLoading ? 'not-allowed' : 'pointer',
-                          fontSize: '1rem'
-                        }}
-                      >
-                        {paymentLoading 
-                          ? 'Processing...'
-                          : userCurrency === 'INR' 
-                            ? `Pay ₹${TEST_PRICE_INR} (Test)` 
-                            : `Pay $${TEST_PRICE_USD} (Test)`}
-                      </button>
-                      <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '8px', textAlign: 'center' }}>
-                        Test mode: ₹{TEST_PRICE_INR} / ${TEST_PRICE_USD}
-                      </p>
-                      <div style={{
-                        marginTop: '10px',
-                        textAlign: 'center'
-                      }}>
-                        <button
-                          onClick={() => handleCurrencySwitch(userCurrency === 'INR' ? 'USD' : 'INR')}
-                          style={{
-                            background: 'transparent',
-                            color: '#2563eb',
-                            border: 'none',
-                            fontSize: '0.9rem',
-                            cursor: 'pointer',
-                            textDecoration: 'underline'
-                          }}
-                        >
-                          {userCurrency === 'INR' ? 'Pay in USD instead?' : 'Pay in Indian Rupees instead?'}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    // Regular buttons for Free and Enterprise
-                    <button 
-                      style={combineStyles(
-                        styles.planButton,
-                        plan.name === 'Enterprise' ? 
-                          combineStyles(styles.btn, styles.btnSecondary) : 
-                          combineStyles(styles.btn, {background: 'transparent', color: '#2563eb', border: '2px solid #2563eb'})
-                      )}
-                      onClick={plan.onClick}
-                    >
-                      {plan.buttonText}
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <p style={styles.freeTrialNote}>
-              All paid plans include a 14-min free trial. No credit card required to start.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Test Mode Indicator */}
-      {testMode && (
-        <div style={{
-          position: 'fixed',
-          bottom: '10px',
-          right: '10px',
-          background: '#f59e0b',
-          color: '#92400e',
-          padding: '5px 10px',
-          borderRadius: '4px',
-          fontSize: '0.8rem',
-          fontWeight: 600,
-          zIndex: 9999,
-          boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-        }}>
-          TEST MODE
-        </div>
-      )}
     </div>
   );
 };

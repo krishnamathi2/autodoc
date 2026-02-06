@@ -165,8 +165,8 @@ function DashboardPage() {
         console.error('Error parsing trial data:', error);
       }
     } else {
-      // If no trial data, redirect to free trial page
-      navigate('/free-trial');
+      // If no trial data, redirect to sign in
+      navigate('/signin');
       return;
     }
 
@@ -624,7 +624,7 @@ function DashboardPage() {
   };
 
   const handleUpgrade = () => {
-    navigate('/free-trial');
+    navigate('/signin');
   };
 
   const handleNewScan = () => {
